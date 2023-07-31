@@ -1,0 +1,171 @@
+import pygame as pg
+from pygame.locals import *
+import random
+import time
+
+WIDTH = 800
+HEIGHT = 400
+SCREEN_SIZE = (WIDTH, HEIGHT + 100)
+FPS = 60
+WHITE = (255, 255, 255)
+PADDLE_WIDTH = 10
+PADDLE_HEIGHT = 50
+BALL_SIZE = 10
+PADDLE_SPEED = 5
+power=True
+powerup=False
+# Initialize Pygame
+pg.init()
+CLOCK = pg.time.Clock()
+screen = pg.display.set_mode(SCREEN_SIZE, 0, 32)
+pg.display.set_caption("Pong")
+
+def lose(sprites):
+  
+  print('You lost!')
+
+class Paddle1(pg.sprite.Sprite):
+    def __init__(self, x, y,width,height):
+        pg.sprite.Sprite.__init__(self)
+        self.image = pg.Surface((width, height))
+        self.image.fill(WHITE)
+        self.rect = self.image.get_rect()
+        self.rect.centerx = x
+        self.rect.centery = y
+        self.speed = PADDLE_SPEED
+
+        if self.rect.top < 0:
+            self.rect.top = 0
+        if self.rect.bottom > HEIGHT:
+            self.rect.bottom = HEIGHT
+
+    def update(self):
+        keystate = pg.key.get_pressed()
+        
+        if keystate[K_UP]:
+            self.rect.y -= self.speed
+        if keystate[K_DOWN]:
+            self.rect.y += self.speed
+
+        if self.rect.top < 0:
+            self.rect.top = 0
+        if self.rect.bottom > HEIGHT:
+            self.rect.bottom = HEIGHT
+class Paddle2(pg.sprite.Sprite):
+    def __init__(self, x, y, width,height):
+        pg.sprite.Sprite.__init__(self)
+        self.image = pg.Surface((width, height))
+        self.image.fill(WHITE)
+        self.rect = self.image.get_rect()
+        self.rect.centerx = x
+        self.rect.centery = y
+        self.speed = PADDLE_SPEED
+
+        if self.rect.top < 0:
+            self.rect.top = 0
+        if self.rect.bottom > HEIGHT:
+            self.rect.bottom = HEIGHT
+
+    def update(self):
+        keystate = pg.key.get_pressed()
+        
+        if keystate[K_w]:
+            self.rect.y -= self.speed
+        if keystate[K_s]:
+            self.rect.y += self.speed
+
+        if self.rect.top < 0:
+            self.rect.top = 0
+        if self.rect.bottom > HEIGHT:
+            self.rect.bottom = HEIGHT
+
+
+class Ball(pg.sprite.Sprite):
+    def __init__(self):
+        pg.sprite.Sprite.__init__(self)
+        self.image = pg.Surface((BALL_SIZE, BALL_SIZE))
+        self.image.fill(WHITE)
+        self.rect = self.image.get_rect()
+        self.rect.centerx = WIDTH / 2
+        self.rect.centery = HEIGHT / 2
+        self.speed_x = PADDLE_SPEED
+        self.speed_y = PADDLE_SPEED
+
+    def update(self):
+        self.rect.x += self.speed_x
+        self.rect.y += self.speed_y
+
+        if self.rect.right > WIDTH or self.rect.left < 0:
+            self.speed_x *= -1
+        if self.rect.top < 0 or self.rect.bottom > HEIGHT:
+            self.speed_y *= -1
+
+        if pg.sprite.collide_rect(self, paddle1) or pg.sprite.collide_rect(self, paddle2):
+            self.speed_x *= -1
+
+
+class PowerUp(pg.sprite.Sprite):
+    def __init__(self, x, y):
+        pg.sprite.Sprite.__init__(self)
+        self.image = pg.Surface((20, 20))
+        self.image.fill((255, 0, 0))
+        self.rect = self.image.get_rect()
+        self.rect.centerx = x
+        self.rect.centery = y
+
+
+
+paddle1=Paddle1(40, HEIGHT / 2,PADDLE_WIDTH,PADDLE_HEIGHT)
+paddle2=Paddle2(WIDTH - 50, HEIGHT / 2,PADDLE_WIDTH,PADDLE_HEIGHT)
+ball = Ball()
+ballrect=ball.rect
+paddlerect=paddle1.rect
+all_sprites = pg.sprite.Group()
+all_sprites.add(paddle1, paddle2, ball)
+powerup_sprites=pg.sprite.Group()
+
+power_up_timer = 0
+POWER_UP_INTERVAL = 10 * FPS
+
+running = True
+while running:
+    CLOCK.tick(FPS)
+
+    for event in pg.event.get():
+        if event.type == QUIT:
+            running = False
+
+    all_sprites.update()
+
+    # Increment power-up timer
+    power_up_timer += 1
+
+    if power_up_timer >= POWER_UP_INTERVAL:
+        if power==True:
+          power_up = PowerUp(WIDTH / 2, random.randint(50, HEIGHT - 50))
+          all_sprites.add(power_up)  
+          powerup_sprites.add(power_up)
+          power=True
+        power_up_timer = 0  # Reset power-up timer
+    
+    if ball.rect.left<= 1:
+          print('Player 1 lost')
+          break
+    if ball.rect.right>= 799:
+          print('Player 2 lost')
+          break
+    if pg.sprite.spritecollideany(ball,powerup_sprites):
+      power_up.kill()
+      powerup=True
+      power=False
+    if pg.Rect.colliderect(paddlerect,ballrect):   
+      if powerup==True:
+        pass
+      else:
+        pass
+    screen.fill((0, 0, 0))
+    all_sprites.draw(screen)
+
+    pg.display.flip()
+
+pg.quit()
