@@ -1,10 +1,10 @@
 import requests
 import random
 
-
-word_bank = requests.get('https://random-word-api.herokuapp.com/word?length=5')
-word=word_bank.json()
-selected_word = word[0]
+def get_random_word():
+    word_bank = requests.get('https://random-word-api.herokuapp.com/word?length=5')
+    word = word_bank.json()
+    return word[0].lower()
 
 def check_guess(word, guess):
     feedback = []
@@ -17,28 +17,10 @@ def check_guess(word, guess):
             feedback.append("❌")
     return "".join(feedback)
 
-# Main game loop
 def game_loop():
-        running = True
-        attempts = 6
+    selected_word = get_random_word()
+    attempts = 6
 
-        # Check if the player has guessed the word
-        guess = (input("Enter your guess:\n")).lower()
-        if guess == selected_word:
-            print("Correct! You've guessed the word.")
-            running = False
-
-        # Display game instructions
-        print(f"\nRemaining attempts: {attempts}")
-        print("Your Progress Guide:", check_guess(selected_word, guess))
-
-        attempts -= 1
-        if attempts == 0:
-            print("You've run out of attempts. The word was:", selected_word)
-            running = False
-
-
-if __name__ == "__main__":
     print("""Wordle is a single-player game
     A player has to guess a five-letter hidden word
     You have six attempts
@@ -47,4 +29,23 @@ if __name__ == "__main__":
     "➕" indicates that the letter at that position is in the hidden word, but in a different position
     "❌" indicates that the letter at that position is wrong and isn't in the hidden word""")
 
+    while attempts > 0:
+        # Check if the player has guessed the word
+        guess = input(f"\nEnter your guess ({attempts} attempts remaining): ").lower()
+
+        if guess == selected_word:
+            print("Correct! You've guessed the word.")
+            break
+
+        if len(guess) != 5 or not guess.isalpha():
+            print("Invalid input. Please enter a five-letter word with only letters.")
+            continue
+
+        print("Your Progress Guide:", check_guess(selected_word, guess))
+        attempts -= 1
+
+    if attempts == 0:
+        print("You've run out of attempts. The word was:", selected_word)
+
+if __name__ == "__main__":
     game_loop()
